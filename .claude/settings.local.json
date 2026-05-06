@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew bootRun)",
+      "PowerShell($env:JAVA_HOME; echo \"---\"; [System.Environment]::GetEnvironmentVariable\\('JAVA_HOME', 'Machine'\\))",
+      "PowerShell($env:JAVA_HOME = [System.Environment]::GetEnvironmentVariable\\('JAVA_HOME', 'Machine'\\); cd \"c:\\\\Users\\\\sumuk\\\\Desktop\\\\Repository\\\\VeloCell\"; ./gradlew bootRun 2>&1 | Select-Object -First 80)",
+      "PowerShell($env:JAVA_HOME = [System.Environment]::GetEnvironmentVariable\\('JAVA_HOME', 'Machine'\\); cd \"c:\\\\Users\\\\sumuk\\\\Desktop\\\\Repository\\\\VeloCell\"; ./gradlew clean bootRun 2>&1 | Select-Object -First 80)"
+    ]
+  }
+}
