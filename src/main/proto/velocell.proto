@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package io.auxia.vellocell;
+
+option java_package = "io.auxia.vellocell.grpc";
+option java_multiple_files = true;
+
+service VeloCellService {
+    // Registers or retrieves a user by username, returning their server-assigned ID.
+    rpc GetOrCreateUser(GetOrCreateUserRequest) returns (GetOrCreateUserResponse);
+
+    // Creates a room if it doesn't exist, idempotently returns its ID.
+    rpc CreateRoom(CreateRoomRequest) returns (CreateRoomResponse);
+
+    // Adds a user to a room's membership table.
+    rpc JoinRoom(JoinRoomRequest) returns (JoinRoomResponse);
+
+    // Unary history fetch — returns the last 50 messages for a room, oldest-first.
+    rpc GetRoomHistory(GetHistoryRequest) returns (GetHistoryResponse);
+
+    // Bidirectional stream for live traffic only. No history is sent over this stream.
+    rpc ConnectStream(stream ClientEvent) returns (stream ServerEvent);
+}
+
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
+message GetOrCreateUserRequest {
+    string username = 1;
+}
+
+message GetOrCreateUserResponse {
+    int64 user_id  = 1;
+    string username = 2;
+}
+
+// ─── Room Management ─────────────────────────────────────────────────────────
+
+message CreateRoomRequest {
+    string name = 1;
+}
+
+message CreateRoomResponse {
+    int64  room_id = 1;
+    string name    = 2;
+}
+
+message JoinRoomRequest {
+    int64 user_id = 1;
+    int64 room_id = 2;
+}
+
+message JoinRoomResponse {
+    bool   success = 1;
+    string message = 2;
+}
+
+// ─── History (Unary) ─────────────────────────────────────────────────────────
+
+message GetHistoryRequest {
+    int64 room_id = 1;
+}
+
+message GetHistoryResponse {
+    repeated ServerEvent messages = 1;
+}
+
+// ─── Streaming Events ────────────────────────────────────────────────────────
+
+// Sent by the client over the bidi stream.
+// The first event with empty content is a connection handshake — used only to
+// register the stream in the registry and is not persisted.
+message ClientEvent {
+    string message_id = 1; // Client-generated UUID (used as PK for idempotency)
+    int64  room_id    = 2;
+    int64  sender_id  = 3;
+    string content    = 4;
+}
+
+// Pushed by the server to all online room members.
+message ServerEvent {
+    string message_id      = 1;
+    int64  room_id         = 2;
+    int64  sender_id       = 3;
+    string sender_username = 4;
+    string content         = 5;
+    int64  timestamp_ms    = 6;
+}
